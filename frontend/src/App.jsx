@@ -1,122 +1,84 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowDownRight, ArrowRight, ArrowUpRight, CheckCircle2, ChevronDown,
+  CircleHelp, Clock3, Leaf, MapPin, Menu, Plus, Recycle, Search,
+  ShieldCheck, Sparkles, Sprout, TrendingUp, Wallet, X,
+} from 'lucide-react';
+import { createListing, getListings } from './api.js';
 
-function App() {
-  const [count, setCount] = useState(0)
+const starterListings = [
+  { _id: 'sample-1', title: 'Clean cardboard boxes', category: 'Paper', quantityKg: 12, location: 'Indirapuram, Ghaziabad', status: 'Available', estimatedValue: 96 },
+  { _id: 'sample-2', title: 'PET plastic bottles', category: 'Plastic', quantityKg: 8, location: 'Vaishali, Ghaziabad', status: 'Available', estimatedValue: 120 },
+  { _id: 'sample-3', title: 'Old metal utensils', category: 'Metal', quantityKg: 4, location: 'Sector 62, Noida', status: 'Pickup requested', estimatedValue: 240 },
+];
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const categories = ['Paper', 'Plastic', 'Metal', 'E-waste', 'Glass', 'Other'];
+const categoryTone = { Paper: 'amber', Plastic: 'blue', Metal: 'slate', 'E-waste': 'violet', Glass: 'cyan', Other: 'green' };
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function money(value = 0) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 }
 
-export default App
+function App() {
+  const [listings, setListings] = useState(starterListings);
+  const [apiConnected, setApiConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All categories');
+  const [form, setForm] = useState({ title: '', category: 'Plastic', quantityKg: '', location: '', description: '' });
+
+  useEffect(() => {
+    let active = true;
+    getListings()
+      .then((data) => {
+        if (!active) return;
+        setListings(Array.isArray(data.listings) ? data.listings : []);
+        setApiConnected(true);
+      })
+      .catch(() => {
+        if (active) setApiConnected(false);
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const filteredListings = useMemo(() => listings.filter((item) => {
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch = !term || `${item.title} ${item.category} ${item.location}`.toLowerCase().includes(term);
+    const matchesCategory = categoryFilter === 'All categories' || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  }), [listings, searchTerm, categoryFilter]);
+
+  // Demo passport figures are placeholders until collector-confirmed pickups exist.
+  const totalKg = 47;
+  const totalValue = 1240;
+
+  function updateForm(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setNotice('');
+    const payload = { ...form, quantityKg: Number(form.quantityKg) };
+    if (!payload.title.trim() || !payload.location.trim() || !Number.isFinite(payload.quantityKg) || payload.quantityKg <= 0) {
+      setNotice('Add a title, location, and a quantity greater than 0 kg.');
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const data = await createListing(payload);
+      setListings((current) => [data.listing, ...current]);
+      setApiConnected(true);
+      setForm({ title: '', category: 'Plastic', quantityKg: '', location: '', description: '' });
+      setIsFormOpen(false);
+      setNotice('Your waste listing was added successfully.');
+    } catch (error) {
+      setNotice(`Could not save listing: ${error.message}. Start the backend and connect MongoDB, then try again.`);
+    } finally {
+      setSubmitting(false);
+    }
+  }
