@@ -1,25 +1,15 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
 
-export async function getListings() {
-  const response = await fetch(`${API_BASE_URL}/listings`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch listings');
-  }
-  return response.json();
-}
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+});
 
-export async function createListing(payload) {
-  const response = await fetch(`${API_BASE_URL}/listings`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('w2v_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to create listing');
-  }
-  return response.json();
-}
+export const errMsg = (error) => error.response?.data?.message || error.message || 'Something went wrong';
+
+export default api;
