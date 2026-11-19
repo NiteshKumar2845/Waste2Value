@@ -73,6 +73,8 @@ a { color: var(--green-700); }
 .form { display: flex; flex-direction: column; gap: 12px; }
 .form.narrow { max-width: 440px; margin: 24px auto; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 500; }
+ .field-error { display: block; color: var(--red); font-size: 13px; }
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: var(--red); }
 label.inline { flex-direction: row; align-items: center; gap: 8px; margin: 6px 0; }
 input, select, textarea {
   font: inherit; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; min-width: 0;
