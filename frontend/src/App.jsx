@@ -47,10 +47,17 @@ function App() {
 
   const filteredListings = useMemo(() => listings.filter((item) => {
     const term = searchTerm.trim().toLowerCase();
-    const matchesSearch = !term || `${item.title} ${item.category} ${item.location}`.toLowerCase().includes(term);
+    const matchesSearch = !term || `${item.title || ''} ${item.category || ''} ${item.location || ''} ${item.description || ''}`.toLowerCase().includes(term);
     const matchesCategory = categoryFilter === 'All categories' || item.category === categoryFilter;
     return matchesSearch && matchesCategory;
   }), [listings, searchTerm, categoryFilter]);
+
+  const hasActiveFilters = Boolean(searchTerm.trim()) || categoryFilter !== 'All categories';
+
+  function clearFilters() {
+    setSearchTerm('');
+    setCategoryFilter('All categories');
+  }
 
   // Demo passport figures are placeholders until collector-confirmed pickups exist.
   const totalKg = 47;
@@ -140,10 +147,10 @@ function App() {
 
           <section className="content-grid">
             <div className="panel listings-panel" id="listings"><div className="panel-heading"><div><div className="section-kicker">YOUR MATERIALS</div><h3>Recent waste listings</h3></div><button className="text-button" onClick={() => setIsFormOpen(true)}>Add new <Plus size={15} /></button></div>
-              <div className="listing-controls"><label className="search-box"><Search size={16} /><input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search listings..." /></label><select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} aria-label="Filter by category"><option>All categories</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></div>
+              <div className="listing-controls" role="search" aria-label="Filter waste listings"><label className="search-box" htmlFor="listing-search"><Search size={16} aria-hidden="true" /><input id="listing-search" type="search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search title, category, location..." /></label><label className="visually-hidden" htmlFor="listing-category-filter">Filter by category</label><select id="listing-category-filter" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}><option>All categories</option>{categories.map((category) => <option key={category}>{category}</option>)}</select><button type="button" className="text-button clear-filters" onClick={clearFilters} disabled={!hasActiveFilters}>Clear filters</button></div>
               <div className="table-wrap"><table><thead><tr><th>ITEM</th><th>QUANTITY</th><th>EST. VALUE</th><th>STATUS</th></tr></thead><tbody>
                 {filteredListings.map((item) => <tr key={item._id}><td><div className="item-cell"><span className={`material-icon tone-${categoryTone[item.category] || 'green'}`}><Recycle size={17} /></span><span><strong>{item.title}</strong><small><span className={`category-dot tone-dot-${categoryTone[item.category] || 'green'}`} />{item.category} <span className="cell-divider">·</span> {item.location}</small></span></div></td><td className="quantity-cell">{item.quantityKg} kg</td><td className="value-cell">{money(item.estimatedValue)}</td><td><span className={`status-pill ${(item.status || 'Available').toLowerCase().includes('pickup') ? 'status-pending' : 'status-available'}`}><span />{item.status || 'Available'}</span></td></tr>)}
-                {!filteredListings.length && <tr><td colSpan="4" className="empty-row">{loading ? 'Loading your listings…' : 'No listings match your search yet.'}</td></tr>}
+                {!filteredListings.length && <tr><td colSpan="4" className="empty-row" role={loading ? 'status' : 'note'}>{loading ? 'Loading your listings…' : listings.length === 0 ? 'No waste listings yet. Add a listing to get started.' : hasActiveFilters ? 'No listings match your search or filters.' : 'No waste listings to show.'}</td></tr>}
               </tbody></table></div>
               <div className="table-footer"><span>Showing {filteredListings.length} item{filteredListings.length === 1 ? '' : 's'}</span><span className="live-label"><span />{apiConnected ? 'Live data' : 'Sample data'}</span></div>
             </div>

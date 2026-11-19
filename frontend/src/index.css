@@ -624,6 +624,23 @@ button, input, select, textarea {
   cursor: pointer;
 }
 
+.text-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .listing-controls {
   display: flex;
   gap: 10px;
@@ -1032,4 +1049,11 @@ td {
 @media (max-width: 960px) {
   .sidebar { display: none; }
   .content-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .listing-controls { flex-wrap: wrap; }
+  .listing-controls .search-box { flex-basis: 100%; }
+  .listing-controls select { flex: 1; min-width: 0; }
+  .listing-controls .clear-filters { margin-left: auto; }
 }
