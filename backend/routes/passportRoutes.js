@@ -5,6 +5,6 @@ const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/me', protect, getMyPassport);
-router.get('/:passportId', getPublicPassport);
+router.get('/public/:passportId', getPublicPassport);
 
 module.exports = router;

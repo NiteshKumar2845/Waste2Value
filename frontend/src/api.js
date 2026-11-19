@@ -1,15 +1,13 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-});
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('w2v_token');
+  const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-export const errMsg = (error) => error.response?.data?.message || error.message || 'Something went wrong';
+export const errMsg = (err) => err.response?.data?.message || err.message || 'Something went wrong';
 
 export default api;
