@@ -1,25 +1,24 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
 
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+export const errMsg = (error) => error.response?.data?.message || error.message || 'Something went wrong';
+
+// Retain the current lightweight overview's listing API while sharing the same API URL.
 export async function getListings() {
-  const response = await fetch(`${API_BASE_URL}/listings`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch listings');
-  }
-  return response.json();
+  const { data } = await api.get('/listings');
+  return data;
 }
 
 export async function createListing(payload) {
-  const response = await fetch(`${API_BASE_URL}/listings`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to create listing');
-  }
-  return response.json();
+  const { data } = await api.post('/listings', payload);
+  return data;
 }
+
+export default api;
