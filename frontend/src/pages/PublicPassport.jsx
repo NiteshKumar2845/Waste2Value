@@ -10,7 +10,7 @@ export default function PublicPassport() {
 
   useEffect(() => {
     api
-      .get(`/passport/public/${passportId}`)
+      .get(`/passport/${passportId}`)
       .then((res) => setPassport(res.data.passport))
       .catch((err) => setError(errMsg(err)));
   }, [passportId]);

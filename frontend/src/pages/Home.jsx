@@ -13,9 +13,10 @@ const STEPS = [
 
 export default function Home() {
   const [rates, setRates] = useState(null);
+  const [ratesError, setRatesError] = useState('');
 
   useEffect(() => {
-    api.get('/meta/rates').then((res) => setRates(res.data.rates)).catch(() => {});
+    api.get('/meta/rates').then((res) => setRates(res.data.rates)).catch(() => setRatesError('Indicative rates are unavailable right now.'));
   }, []);
 
   return (
@@ -64,6 +65,7 @@ export default function Home() {
           <p className="muted small">Final price depends on the verified weight and quality at pickup.</p>
         </section>
       )}
+      {ratesError && <p className="muted small" role="status">{ratesError}</p>}
     </>
   );
 }

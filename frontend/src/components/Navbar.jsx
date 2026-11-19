@@ -5,6 +5,11 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isSeller = user && ['user', 'business'].includes(user.role);
+  const dashboardPath = user?.role === 'admin'
+    ? '/dashboard/admin'
+    : user?.role === 'collector'
+      ? '/dashboard/collector'
+      : '/dashboard/user';
 
   const handleLogout = () => {
     logout();
@@ -18,7 +23,9 @@ export default function Navbar() {
           ♻️ Waste2Value
         </Link>
         <nav className="nav-links">
-          {user && <NavLink to="/dashboard">Dashboard</NavLink>}
+          {user && <NavLink to={dashboardPath}>Dashboard</NavLink>}
+          {isSeller && <NavLink to="/overview">Overview</NavLink>}
+          {user && <NavLink to="/settings">Settings</NavLink>}
           {isSeller && <NavLink to="/new-listing">Sell waste</NavLink>}
           {isSeller && <NavLink to="/passport">My Passport</NavLink>}
           {!user ? (

@@ -13,6 +13,7 @@ import Overview from './pages/Overview.jsx';
 import Passport from './pages/Passport.jsx';
 import PublicPassport from './pages/PublicPassport.jsx';
 import Register from './pages/Register.jsx';
+import Settings from './pages/Settings.jsx';
 import './styles.css';
 
 function AppRoutes() {
@@ -26,9 +27,10 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route path="/overview" element={<Overview />} />
+          <Route path="/overview" element={<ProtectedRoute roles={['user', 'business']}><Overview /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/passport/:passportId" element={<PublicPassport />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/dashboard/user" element={<ProtectedRoute roles={['user', 'business']}><UserDashboard /></ProtectedRoute>} />

@@ -194,6 +194,17 @@ button, input, select, textarea {
   font-size: 0.74rem;
 }
 
+.profile-logout {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--green-dark);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .muted-icon {
   margin-left: auto;
   color: var(--muted);
@@ -749,6 +760,11 @@ td {
   color: #92400e;
 }
 
+.status-cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
 .table-footer {
   display: flex;
   justify-content: space-between;
@@ -1047,11 +1063,31 @@ td {
 }
 
 @media (max-width: 960px) {
-  .sidebar { display: none; }
+  .app-shell { flex-direction: column; }
+  .sidebar {
+    display: flex;
+    width: 100%;
+    height: auto;
+    position: relative;
+    top: auto;
+    padding: 16px 20px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar .brand { margin-bottom: 12px; }
+  .workspace-label, .help-card { display: none; }
+  .side-nav { flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
+  .side-nav .nav-link { white-space: nowrap; }
+  .sidebar-bottom { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .profile-mini { width: 100%; }
   .content-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
+  .sidebar { padding: 12px; }
+  .sidebar .brand { margin-bottom: 8px; }
+  .side-nav { gap: 2px; }
+  .side-nav .nav-link { padding: 8px; font-size: 0.78rem; }
   .listing-controls { flex-wrap: wrap; }
   .listing-controls .search-box { flex-basis: 100%; }
   .listing-controls select { flex: 1; min-width: 0; }

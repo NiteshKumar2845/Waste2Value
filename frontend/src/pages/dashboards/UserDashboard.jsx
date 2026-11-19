@@ -10,15 +10,20 @@ export default function UserDashboard() {
   const [listings, setListings] = useState([]);
   const [passport, setPassport] = useState(null);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const [newTime, setNewTime] = useState({}); // listingId -> datetime-local value
 
   const load = async () => {
+    setError('');
     try {
       const [l, p] = await Promise.all([api.get('/listings/mine'), api.get('/passport/me')]);
       setListings(l.data.listings);
       setPassport(p.data.passport);
     } catch (err) {
       setError(errMsg(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,8 +34,9 @@ export default function UserDashboard() {
   const reschedule = async (id) => {
     setError('');
     try {
-      await api.patch(`/listings/${id}/schedule`, { scheduledAt: localToISO(newTime[id]) });
+      await api.patch(`/listings/${id}/reschedule`, { scheduledAt: localToISO(newTime[id]) });
       setNewTime({ ...newTime, [id]: '' });
+      setMessage('Pickup time updated.');
       load();
     } catch (err) {
       setError(errMsg(err));
@@ -39,8 +45,10 @@ export default function UserDashboard() {
 
   const cancel = async (id) => {
     if (!window.confirm('Cancel this listing?')) return;
+    setError('');
     try {
       await api.patch(`/listings/${id}/cancel`);
+      setMessage('Listing cancelled.');
       load();
     } catch (err) {
       setError(errMsg(err));
@@ -57,6 +65,8 @@ export default function UserDashboard() {
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
+      {message && <div className="alert alert-success" role="status">{message}</div>}
+      {loading && <p className="muted" role="status">Loading your listings…</p>}
 
       {passport && (
         <div className="grid grid-4">
@@ -85,7 +95,7 @@ export default function UserDashboard() {
       )}
 
       <h2>My listings</h2>
-      {listings.length === 0 && (
+      {!loading && !error && listings.length === 0 && (
         <p className="muted">
           No listings yet. <Link to="/new-listing">Create your first one</Link>.
         </p>

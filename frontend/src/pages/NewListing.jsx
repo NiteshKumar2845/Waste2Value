@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { errMsg } from '../api';
+import api, { createListing, errMsg } from '../api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { CATEGORY_ICONS, getBrowserLocation, inr, localToISO } from '../utils/helpers.js';
 
@@ -15,11 +15,13 @@ export default function NewListing() {
   const [scheduledAt, setScheduledAt] = useState('');
   const [description, setDescription] = useState('');
   const [nearbyCount, setNearbyCount] = useState(null);
+  const [nearbyError, setNearbyError] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    api.get('/meta/rates').then((res) => setRates(res.data.rates));
+    api.get('/meta/rates').then((res) => setRates(res.data.rates)).catch((err) => setError(errMsg(err)));
   }, []);
 
   const estimate = items.reduce((sum, i) => sum + (Number(i.estimatedKg) || 0) * (rates[i.category] || 0), 0);
@@ -30,11 +32,13 @@ export default function NewListing() {
   const removeItem = (index) => setItems(items.filter((_, i) => i !== index));
 
   const checkNearby = async (lat, lng) => {
+    setNearbyError('');
     try {
       const { data } = await api.get('/collectors/nearby', { params: { lat, lng, radius: 15 } });
       setNearbyCount(data.collectors.length);
-    } catch {
+    } catch (requestError) {
       setNearbyCount(null);
+      setNearbyError(errMsg(requestError));
     }
   };
 
@@ -52,16 +56,25 @@ export default function NewListing() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+    if (scheduledAt && new Date(scheduledAt) <= new Date()) {
+      setError('Choose a pickup time in the future.');
+      return;
+    }
+    if (!coords.lat.trim() || !coords.lng.trim() || !Number.isFinite(Number(coords.lat)) || !Number.isFinite(Number(coords.lng)) || !address.trim()) {
+      setError('Add a pickup address and use your location or enter valid coordinates.');
+      return;
+    }
     setBusy(true);
     try {
-      await api.post('/listings', {
+      await createListing({
         items: items.map((i) => ({ category: i.category, estimatedKg: Number(i.estimatedKg) })),
         address,
         description,
         location: { lat: Number(coords.lat), lng: Number(coords.lng) },
         scheduledAt: localToISO(scheduledAt),
       });
-      navigate('/dashboard');
+      setSuccess('Your pickup request was created. You can track it from your dashboard.');
     } catch (err) {
       setError(errMsg(err));
     } finally {
@@ -73,6 +86,7 @@ export default function NewListing() {
     <form className="card form" onSubmit={onSubmit}>
       <h2>Sell your waste</h2>
       {error && <div className="alert alert-error">{error}</div>}
+      {success && <div className="alert alert-success" role="status">{success} <button type="button" className="text-button" onClick={() => navigate('/dashboard')}>View dashboard</button></div>}
 
       <h3>1. What do you have?</h3>
       {items.map((item, index) => (
@@ -141,6 +155,7 @@ export default function NewListing() {
             : 'No verified collectors found nearby yet — your listing will wait until one joins.'}
         </p>
       )}
+      {nearbyError && <p className="small alert alert-error" role="status">Nearby collector lookup failed: {nearbyError}</p>}
 
       <h3>3. When?</h3>
       <label>

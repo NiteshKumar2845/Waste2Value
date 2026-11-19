@@ -8,11 +8,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(undefined, (error) => {
+  const requestUrl = error.config?.url || '';
+  if (error.response?.status === 401 && localStorage.getItem('token') && !/\/auth\/(login|register)$/.test(requestUrl)) {
+    localStorage.removeItem('token');
+    window.dispatchEvent(new Event('waste2value:session-expired'));
+  }
+  return Promise.reject(error);
+});
+
 export const errMsg = (error) => error.response?.data?.message || error.message || 'Something went wrong';
 
 // Retain the current lightweight overview's listing API while sharing the same API URL.
 export async function getListings() {
-  const { data } = await api.get('/listings');
+  const { data } = await api.get('/listings/mine');
   return data;
 }
 

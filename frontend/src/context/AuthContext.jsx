@@ -10,15 +10,19 @@ export function AuthProvider({ children }) {
 
   // On first load, restore the session from the saved token
   useEffect(() => {
+    const handleExpiredSession = () => setUser(null);
+    window.addEventListener('waste2value:session-expired', handleExpiredSession);
+
     if (!localStorage.getItem('token')) {
       setLoading(false);
-      return;
+      return () => window.removeEventListener('waste2value:session-expired', handleExpiredSession);
     }
     api
       .get('/auth/me')
       .then((res) => setUser(res.data.user))
       .catch(() => localStorage.removeItem('token'))
       .finally(() => setLoading(false));
+    return () => window.removeEventListener('waste2value:session-expired', handleExpiredSession);
   }, []);
 
   const saveSession = ({ user, token }) => {

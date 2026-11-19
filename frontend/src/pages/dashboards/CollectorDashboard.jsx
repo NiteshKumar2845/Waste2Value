@@ -14,24 +14,33 @@ export default function CollectorDashboard() {
   const [weights, setWeights] = useState({}); // listingId -> { category: kg }
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const hasLocation = !!user.location;
 
   const load = async () => {
     setError('');
+    if (!user.verified) {
+      setAssigned([]);
+      setNearby([]);
+      setLoading(false);
+      return;
+    }
     try {
       const calls = [api.get('/listings/assigned')];
-      if (user.verified && hasLocation) calls.push(api.get('/listings/nearby'));
+      if (hasLocation) calls.push(api.get('/listings/nearby'));
       const [a, n] = await Promise.all(calls);
       setAssigned(a.data.listings);
       setNearby(n ? n.data.listings : []);
     } catch (err) {
       setError(errMsg(err));
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    api.get('/meta/rates').then((res) => setRates(res.data.rates));
+    api.get('/meta/rates').then((res) => setRates(res.data.rates)).catch((err) => setError(errMsg(err)));
   }, []);
 
   useEffect(() => {
@@ -78,7 +87,7 @@ export default function CollectorDashboard() {
     setError('');
     try {
       const items = listing.items.map((i) => ({ category: i.category, actualKg: Number(kgFor(listing, i)) }));
-      const { data } = await api.post(`/listings/${listing._id}/verify`, { items });
+      const { data } = await api.patch(`/listings/${listing._id}/complete`, { items });
       setMessage(`Verified. ${inr(data.payout)} credited to the seller (platform fee ${inr(data.commission)}).`);
       load();
     } catch (err) {
@@ -100,6 +109,7 @@ export default function CollectorDashboard() {
       )}
       {error && <div className="alert alert-error">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
+      {loading && <p className="muted" role="status">Loading collection information…</p>}
 
       <div className="card">
         <strong>Service area</strong>
@@ -130,7 +140,7 @@ export default function CollectorDashboard() {
 
       {tab === 'nearby' && (
         <>
-          {nearby.length === 0 && <p className="muted">No open listings in your area right now.</p>}
+          {!loading && !error && nearby.length === 0 && <p className="muted">No open listings in your area right now.</p>}
           {nearby.map((l) => (
             <div className="card" key={l._id}>
               <div className="chips">
@@ -157,7 +167,7 @@ export default function CollectorDashboard() {
 
       {tab === 'mine' && (
         <>
-          {assigned.length === 0 && <p className="muted">You have not accepted any pickups yet.</p>}
+          {!loading && !error && assigned.length === 0 && <p className="muted">You have not accepted any pickups yet.</p>}
 
           {open.map((l) => (
             <div className="card" key={l._id}>

@@ -6,14 +6,19 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [collectors, setCollectors] = useState([]);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    setError('');
     try {
       const [s, c] = await Promise.all([api.get('/admin/stats'), api.get('/admin/collectors')]);
       setStats(s.data.stats);
       setCollectors(c.data.collectors);
     } catch (err) {
       setError(errMsg(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -22,8 +27,11 @@ export default function AdminDashboard() {
   }, []);
 
   const setVerified = async (id, verified) => {
+    setError('');
+    setMessage('');
     try {
       await api.patch(`/admin/collectors/${id}/verify`, { verified });
+      setMessage(verified ? 'Collector verified.' : 'Collector verification revoked.');
       load();
     } catch (err) {
       setError(errMsg(err));
@@ -34,6 +42,8 @@ export default function AdminDashboard() {
     <>
       <h1>Admin</h1>
       {error && <div className="alert alert-error">{error}</div>}
+      {message && <div className="alert alert-success" role="status">{message}</div>}
+      {loading && <p className="muted" role="status">Loading administrative information…</p>}
 
       {stats && (
         <div className="grid grid-4">
@@ -60,7 +70,7 @@ export default function AdminDashboard() {
       )}
 
       <h2>Collectors</h2>
-      {collectors.length === 0 && <p className="muted">No collectors have registered yet.</p>}
+      {!loading && !error && collectors.length === 0 && <p className="muted">No collectors have registered yet.</p>}
       {collectors.map((c) => (
         <div className="card row between" key={c._id}>
           <div>
