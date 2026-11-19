@@ -21,9 +21,42 @@ if (!process.env.JWT_SECRET || !process.env.MONGO_URI) {
 
 const app = express();
 
+<<<<<<< HEAD
+=======
+app.use(cors({ origin: process.env.CLIENT_URL || true, credentials: true }));
+app.use(express.json());
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+>>>>>>> origin/main
 app.use('/api/auth', authRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/collectors', collectorRoutes);
 app.use('/api/passport', passportRoutes);
 app.use('/api/admin', adminRoutes);
+<<<<<<< HEAD
 app.use('/api/meta', metaRoutes);
+=======
+app.use('/api/meta', metaRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to connect to database:', err.message);
+    process.exit(1);
+  });
+>>>>>>> origin/main
