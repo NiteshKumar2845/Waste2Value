@@ -1,5 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext.jsx';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AdminDashboard from './pages/dashboards/AdminDashboard.jsx';
@@ -14,7 +13,6 @@ import Passport from './pages/Passport.jsx';
 import PublicPassport from './pages/PublicPassport.jsx';
 import Register from './pages/Register.jsx';
 import Settings from './pages/Settings.jsx';
-import './styles.css';
 
 function AppRoutes() {
   const { pathname } = useLocation();
@@ -46,5 +44,5 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return <BrowserRouter><AuthProvider><AppRoutes /></AuthProvider></BrowserRouter>;
+  return <AppRoutes />;
 }

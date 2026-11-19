@@ -1,4 +1,4 @@
-﻿import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Navbar() {
@@ -19,10 +19,8 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar-inner">
-        <Link to="/" className="brand">
-          ♻️ Waste2Value
-        </Link>
-        <nav className="nav-links">
+        <Link to="/" className="brand">♻️ Waste2Value</Link>
+        <nav className="nav-links" aria-label="Main navigation">
           {user && <NavLink to={dashboardPath}>Dashboard</NavLink>}
           {isSeller && <NavLink to="/overview">Overview</NavLink>}
           {user && <NavLink to="/settings">Settings</NavLink>}
@@ -31,18 +29,12 @@ export default function Navbar() {
           {!user ? (
             <>
               <NavLink to="/login">Login</NavLink>
-              <Link to="/register" className="btn btn-sm">
-                Get started
-              </Link>
+              <Link to="/register" className="btn btn-sm">Get started</Link>
             </>
           ) : (
             <>
-              <span className="muted small">
-                {user.name} · {user.role}
-              </span>
-              <button className="btn btn-sm btn-outline" onClick={handleLogout}>
-                Logout
-              </button>
+              <span className="muted small">{user.name} · {user.role}</span>
+              <button className="btn btn-sm btn-outline" onClick={handleLogout}>Logout</button>
             </>
           )}
         </nav>

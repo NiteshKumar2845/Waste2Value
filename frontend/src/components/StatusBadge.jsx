@@ -1,4 +1,4 @@
-﻿const LABELS = {
+const LABELS = {
   open: 'Waiting for a collector',
   accepted: 'Collector assigned',
   completed: 'Completed & paid',
