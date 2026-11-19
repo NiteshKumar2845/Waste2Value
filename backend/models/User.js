@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     walletBalance: { type: Number, default: 0 },
 
     passportId: { type: String, unique: true, sparse: true },
+    coins: { type: Number, default: 0 }
   },
   {
     timestamps: true,

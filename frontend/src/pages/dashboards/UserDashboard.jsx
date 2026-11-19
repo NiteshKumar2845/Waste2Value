@@ -12,11 +12,21 @@ export default function UserDashboard() {
   const [error, setError] = useState('');
   const [newTime, setNewTime] = useState({}); // listingId -> datetime-local value
 
+  const [coins, setCoins] = useState(user?.coins || 0);
+  const [upiId, setUpiId] = useState('');
+  const [redeemAmount, setRedeemAmount] = useState(1000);
+  const [redeemMsg, setRedeemMsg] = useState('');
+
   const load = async () => {
     try {
-      const [l, p] = await Promise.all([api.get('/listings/mine'), api.get('/passport/me')]);
+      const [l, p, me] = await Promise.all([
+        api.get('/listings/mine'),
+        api.get('/passport/me'),
+        api.get('/auth/me'),
+      ]);
       setListings(l.data.listings);
       setPassport(p.data.passport);
+      setCoins(me.data.user?.coins || 0);
     } catch (err) {
       setError(errMsg(err));
     }
@@ -44,6 +54,22 @@ export default function UserDashboard() {
       load();
     } catch (err) {
       setError(errMsg(err));
+    }
+  };
+
+  const handleRedeem = async (e) => {
+    e.preventDefault();
+    setRedeemMsg('');
+    try {
+      const { data } = await api.post('/auth/redeem', {
+        upiId,
+        coins: redeemAmount,
+      });
+      setCoins(data.coins);
+      setRedeemMsg(data.message);
+      setUpiId('');
+    } catch (err) {
+      setRedeemMsg(err.response?.data?.message || 'Transfer failed');
     }
   };
 
@@ -83,6 +109,34 @@ export default function UserDashboard() {
           </div>
         </div>
       )}
+
+      <div style={{ background: '#fff', padding: '16px', borderRadius: '10px', marginBottom: '20px', border: '1px solid #d1fae5' }}>
+        <h3>🪙 My Waste Coins: {coins} (₹{(coins / 1000).toFixed(2)})</h3>
+        <p style={{ fontSize: '13px', color: '#555' }}>1000 Coins = ₹1 | Instant UPI Transfer</p>
+
+        <form onSubmit={handleRedeem} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+          <input
+            type="text"
+            placeholder="Enter UPI ID (e.g. nitesh@ybl)"
+            value={upiId}
+            onChange={(e) => setUpiId(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            min="1000"
+            step="1000"
+            value={redeemAmount}
+            onChange={(e) => setRedeemAmount(e.target.value)}
+            required
+          />
+          <button type="submit" className="btn btn-primary">
+            Transfer to UPI
+          </button>
+        </form>
+
+        {redeemMsg && <p style={{ marginTop: '10px', color: '#047857', fontWeight: 'bold' }}>{redeemMsg}</p>}
+      </div>
 
       <h2>My listings</h2>
       {listings.length === 0 && (

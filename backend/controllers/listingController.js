@@ -179,8 +179,14 @@ const verifyAndComplete = asyncHandler(async (req, res) => {
   listing.completedAt = new Date();
   await listing.save();
 
+  const totalActualWeight = weighed.reduce(
+    (sum, item) => sum + item.actualKg,
+    0,
+  );
+  const earnedCoins = Math.round(totalActualWeight * 50);
+
   await User.findByIdAndUpdate(listing.user, {
-    $inc: { walletBalance: finalValue },
+    $inc: { walletBalance: finalValue, coins: earnedCoins },
   });
   await Transaction.create({
     user: listing.user,
@@ -191,7 +197,7 @@ const verifyAndComplete = asyncHandler(async (req, res) => {
     userPayout: finalValue,
   });
 
-  res.json({ listing, payout: finalValue, commission });
+  res.json({ listing, payout: finalValue, commission, earnedCoins });
 });
 
 module.exports = {
