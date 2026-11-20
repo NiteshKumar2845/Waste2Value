@@ -2,7 +2,7 @@
 
 Users list recyclable / e-waste, nearby verified collectors accept it, the collector verifies the weight on site, and the user is rewarded with both cash payout and **Waste Coins** (redeemable via simulated UPI transfer). Every user also gets a shareable **Waste Passport** (kg recycled, estimated impact, earnings, Green Score).
 
-**Stack:** Node.js + Express + MongoDB (Mongoose) · React + Vite · JWT auth
+**Stack:** Node.js + Express + MongoDB (Mongoose) · React + Vite · JWT auth                                                 
 
 **Stack:** Node.js + Express + MongoDB (Mongoose) · React + Vite · JWT auth
 
